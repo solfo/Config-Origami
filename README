@@ -1,0 +1,9 @@
+Config::Origami makes it easy to have a "layered" system of default
+configuration, environment specific configuration and overrides.
+
+This is to make it easy to manage the configuration of an application
+"as code" in revision control without unnecessary duplication and
+without having to store sensitive information such as database
+passwords in version control.
+
+The configuration files are stored in a directory of .json files.

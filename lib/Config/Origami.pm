@@ -1,6 +1,69 @@
 package Config::Origami;
-use strict;
-use warnings;
+use Moose;
+use JSON;
+use File::Slurp qw(read_file);
+use Sys::Hostname qw(hostname);
+use Clone ();
+
+use namespace::clean -except => 'meta';
+
+my $json = JSON->new->relaxed(1);
+
+has config_path => (
+   isa => 'Str',
+   is  => 'ro',
+);
+
+sub BUILD {
+    my $self = shift;
+    my $config = {};
+    $config = $self->_load_file( $config, $self->config_path . "/defaults.json");
+    $config = $self->_load_file( $config, $self->config_path . "/defaults-override.json", 1);
+    
+    for my $k (keys %$config) {
+        $self->can($k)
+          ? $self->$k($config->{$k})
+          : $self->{$k} = $config->{$k};
+    }
+    use Data::Dump qw(pp);
+    pp($self, $config);
+    return $self;
+}
+
+sub _load_file {
+    my ($self, $config, $file, $optional) = @_;
+    return $config if $optional and !-f $file;
+    my $data = $json->decode(scalar read_file($file));
+    return _hash_merge($config, $data);
+}
+
+# $h = hash_merge($h1, $h2);
+# $h = hash_merge($h1, $h2, $h3, ...);
+sub _hash_merge {
+    # Do a deep copy of arguments, to avoid sharing
+    my @h = @{ Clone::clone(\@_) };
+    # Merge them from left to right
+    my $h = shift @h;
+    __hash_merge($h, $_) for @h;
+    return $h;
+}
+
+sub __hash_merge {
+    my ($h1, $h2) = @_;
+    keys %$h2;    # reset iter
+    while (my ($k, $v) = each %$h2) {
+        if (ref($v) eq 'HASH' and ref($h1->{$k}) eq 'HASH') {
+            _hash_merge($h1->{$k}, $v);
+        }
+        else {
+            $h1->{$k} = $v;
+        }
+    }
+}
+
+__PACKAGE__->meta->make_immutable;
+
+local ($Config::Origami::VERSION) = ('devel') unless defined $Config::Origami::VERSION;
 
 1;
 
@@ -27,15 +90,16 @@ Config::Origami - Layered JSON configuration
 
 =head1 AUTHOR
 
-Ask Bjørn Hansen, C<< <ask at develooper.com> >>
+Ask Bjørn Hansen, C<< <ask at develooper.com> >>.  Based on code
+developed for Solfo, Inc by Graham Barr and Adriano Ferreira.
 
 =head1 BUGS
 
 Please report any bugs or feature requests to the issue tracker at
-L<http://github.com/abh/Config-Origami/issues>.
+L<http://github.com/solfo/Config-Origami/issues>.
 
 The Git repository is available at
-L<http://github.com/abh/Config-Origami>
+L<http://github.com/solfo/Config-Origami>
 
 
 =head1 COPYRIGHT & LICENSE
