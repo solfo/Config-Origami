@@ -1,0 +1,4 @@
+{
+  "name": "basic defaults override",
+  "deep": { "name": "deep override" },
+}

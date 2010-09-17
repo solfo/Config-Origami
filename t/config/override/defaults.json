@@ -1,0 +1,4 @@
+{
+  "name": "basic defaults",
+  "deep": { "name": "deep default" },
+}

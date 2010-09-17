@@ -25,8 +25,6 @@ sub BUILD {
           ? $self->$k($config->{$k})
           : $self->{$k} = $config->{$k};
     }
-    use Data::Dump qw(pp);
-    pp($self, $config);
     return $self;
 }
 
@@ -53,7 +51,7 @@ sub __hash_merge {
     keys %$h2;    # reset iter
     while (my ($k, $v) = each %$h2) {
         if (ref($v) eq 'HASH' and ref($h1->{$k}) eq 'HASH') {
-            _hash_merge($h1->{$k}, $v);
+            __hash_merge($h1->{$k}, $v);
         }
         else {
             $h1->{$k} = $v;
