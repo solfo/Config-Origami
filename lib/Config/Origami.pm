@@ -75,6 +75,34 @@ Config::Origami - Layered JSON configuration
 
 =head1 SYNOPSIS
 
+    use Config::Origami;
+    my $config = Config::Origami->new(config_path => 'some/path');
+    my $port = $config->{port};
+
+or
+
+    package My::Config;
+    use Moose;
+    extends 'Config::Origami';
+
+    has port => (
+        isa => 'Num',
+        is  => 'rw',
+    );
+
+    around BUILDARGS => sub {
+        my ($orig, $class) = (shift, shift);
+        return $class->$orig(config_path => 'config/', @_);
+    };
+
+
+    package My::App;
+    use My::Config;
+
+    my $config = My::Config->new;
+    say "Going to listen on port ", $config->port;
+
+   
 
 =head1 DESCRIPTION
 
